@@ -16,6 +16,7 @@ public class Mock<T> {
     var isStubbing = false
     var stubs: Dictionary<String, Any> = [:]
     var lambdaCalls: Dictionary<String, (Any...) -> Void> = [:]
+    var lambdaCall: Dictionary<String, (Any) -> Void> = [:]
     var counterCall: Dictionary<String, Int> = [:]
     var expectations: Dictionary<String, Expectations> = [:]
     var lastParams: Dictionary<String, Array<Any>> = [:]
@@ -152,14 +153,14 @@ public class OngoingMock<T> {
     }
     
     @discardableResult
-    public func call(_ block: @escaping (Any...) -> Void) -> OngoingMock {
+    public func call<T2>(_ type: T2.Type, paramAt: Int, _ block: @escaping (T2) -> Void) -> OngoingMock {
         mock.isStubbing = false
         
         guard let (key, _) = mock.expectations.first(where: {it in it.value.isMocking }) else {
             assert(false, "You must mock only methods that return \"withStubName\"!")
             return self
         }
-        mock.lambdaCalls[key] = block
+        mock.lambdaCalls[key] = { block($0[paramAt] as! T2) }
         
         return self
     }

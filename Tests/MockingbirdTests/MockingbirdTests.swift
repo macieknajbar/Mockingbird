@@ -1,6 +1,40 @@
 import XCTest
 @testable import Mockingbird
 
+protocol GetItem {
+    func getItem(onError: @escaping () -> Void, onSuccess: @escaping (String) -> Void)
+}
+
+class GetItemMock : GetItem {
+    var mock: Mock<GetItem>!
+    
+    init(mocking: (Mock<GetItem>) -> Void) {
+        mock = Mock(instance: self)
+        mocking(mock)
+    }
+    
+    func getItem(onError: @escaping () -> Void, onSuccess: @escaping (String) -> Void) {
+        mock.withStubName("getItem", onError, onSuccess) { $0 }
+    }
+}
+
+protocol Printer {
+    func print(document: String)
+}
+
+class PrinterMock : Printer {
+    var mock: Mock<Printer>!
+    
+    init(mocking: (Mock<Printer>) -> Void) {
+        mock = Mock(instance: self)
+        mocking(mock)
+    }
+    
+    func print(document: String) {
+        mock.withStubName("print", document) { $0 }
+    }
+}
+
 final class MockingbirdTests: XCTestCase {
     func testExample() throws {
         // XCTest Documentation
@@ -8,6 +42,46 @@ final class MockingbirdTests: XCTestCase {
 
         // Defining Test Cases and Test Methods
         // https://developer.apple.com/documentation/xctest/defining_test_cases_and_test_methods
+    }
+    
+    func testSuccess() {
+        let expected = "Important response"
+        let getItem = GetItemMock { mock in
+            mock.on { $0.getItem(onError: {}, onSuccess: { response in }) }
+                .call(((String) -> Void).self, paramAt: 1) { $0(expected) }
+            return
+        }
+        let printer = PrinterMock { mock in
+            mock.on { $0.print(document: expected )}.expectCall()
+            return
+        }
+    
+        let sut: (GetItem, Printer) -> Void = { getItem, printer in
+            getItem.getItem(onError: {}) { printer.print(document: $0) }
+        }
+        sut(getItem, printer)
+    
+        printer.mock.verify()
+    }
+    
+    func testFailure() {
+        let expected = "Important response"
+        let getItem = GetItemMock { mock in
+            mock.on { $0.getItem(onError: {}, onSuccess: { response in }) }
+                .call((() -> Void).self, paramAt: 0) { $0() }
+            return
+        }
+        let printer = PrinterMock { mock in
+            mock.on { $0.print(document: expected )}.expectCall(times: 0)
+            return
+        }
+    
+        let sut: (GetItem, Printer) -> Void = { getItem, printer in
+            getItem.getItem(onError: {}) { printer.print(document: $0) }
+        }
+        sut(getItem, printer)
+    
+        printer.mock.verify()
     }
 }
 
