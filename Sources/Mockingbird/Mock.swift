@@ -110,6 +110,7 @@ public class OngoingMock<T> {
         mock = aMock
     }
     
+    @discardableResult
     public func willReturn(_ value: Any?) -> OngoingMock {
         mock.isStubbing = false
         
@@ -122,6 +123,7 @@ public class OngoingMock<T> {
         return self
     }
     
+    @discardableResult
     public func expectCall(times: Int = 1) -> OngoingMock {
         mock.isStubbing = false
         
@@ -135,6 +137,7 @@ public class OngoingMock<T> {
         return self
     }
     
+    @discardableResult
     public func ignoringParams(at: Int...) -> OngoingMock {
         mock.isStubbing = false
         
@@ -148,6 +151,7 @@ public class OngoingMock<T> {
         return self
     }
     
+    @discardableResult
     public func call(_ block: @escaping (Any...) -> Void) -> OngoingMock {
         mock.isStubbing = false
         
