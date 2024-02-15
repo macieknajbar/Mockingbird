@@ -44,7 +44,7 @@ public class Mock<T> {
             counterCall[name] = 0
             expectations[name] = Expectations(isMocking: true, times: -1, params: params, ignoredParams: [])
         } else {
-            counterCall[name]! += 1
+            counterCall[name] = (counterCall[name] ?? 0) + 1
             lastParams[name] = params
             lambdaCalls[name]?(params)
         }
@@ -52,7 +52,7 @@ public class Mock<T> {
         let result = block(stubs[name] as? T2)
         lastValues[name] = result
         
-        return block(result)
+        return result
     }
     
     private func cleanState() {
